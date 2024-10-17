@@ -28,14 +28,14 @@ function getCardValue(card, currentTotal) {
 function joinGame(playerName) {
   if (!players[playerName]) {
     players[playerName] = { cards: [], total: 0, state: 'joined' };
+    return `${playerName} has joined the game!`;
   } else {
     // Reset player's game state
     players[playerName].cards = [];
     players[playerName].total = 0;
-    players[playerName].state = 'playing';
+    players[playerName].state = 'joined';
+    return `${playerName} has rejoined the game!`;
   }
-
-  return `${playerName} has joined the game!`;
 }
 
 // Deal cards
@@ -49,6 +49,11 @@ function dealCards(playerName) {
   dealer.total = 0;
   dealer.state = 'playing';
 
+  // Check if player is already playing
+  if (players[playerName].state !== 'joined') {
+    return `${playerName}, you need to start a new game by using !bj before dealing.`;
+  }
+
   // Deal two cards to player
   for (let i = 0; i < 2; i++) {
     players[playerName].cards.push(getRandomCard());
@@ -59,6 +64,7 @@ function dealCards(playerName) {
 
   // Calculate total for the player
   players[playerName].total = players[playerName].cards.reduce((total, card) => total + getCardValue(card, total), 0);
+  players[playerName].state = 'playing'; // Update state to playing
 
   return `${playerName} was dealt: ${players[playerName].cards.join(', ')} (Total: ${players[playerName].total}). Dealer shows: ${dealer.cards[0]}`;
 }
@@ -68,7 +74,7 @@ function hit(playerName) {
   if (!players[playerName]) {
     return "You need to join the game first using !bj";
   }
-  
+
   if (players[playerName].state !== 'playing') {
     return `${playerName} cannot hit. You are either busted or finished playing.`;
   }
@@ -78,7 +84,7 @@ function hit(playerName) {
   players[playerName].total += getCardValue(newCard, players[playerName].total);
 
   if (players[playerName].total > 21) {
-    players[playerName].state = 'bust';
+    players[playerName].state = 'bust'; // Update state to busted
     return `${playerName} busted with ${newCard} (Total: ${players[playerName].total}).`;
   }
 
@@ -90,7 +96,7 @@ function stand(playerName) {
   if (!players[playerName]) {
     return "You need to join the game first using !bj";
   }
-  
+
   if (players[playerName].state !== 'playing') {
     return `${playerName} cannot stand. You are either busted or finished playing.`;
   }
