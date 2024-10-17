@@ -1,0 +1,12 @@
+{
+  "name": "twitch-chat-blackjack",
+  "version": "1.0.0",
+  "description": "A simple Blackjack game for Twitch chat.",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"  // Ensure to install express
+  }
+}
