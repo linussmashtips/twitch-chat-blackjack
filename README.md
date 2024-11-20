@@ -24,48 +24,33 @@ Nightbot can send HTTP GET requests to the game server with the player's name an
 To use the commands in Nightbot, simply configure Nightbot with the following commands:
 
 - **Join the game:**
-  \`\`\`plaintext
-  $(user) $(urlfetch https://your-deployment-url.com/?cmd=bj&user=$(user))
-  \`\`\`
+```$(user) $(urlfetch https://your-deployment-url.com/?cmd=bj&user=$(user))```
 
 - **Deal cards:**
-  \`\`\`plaintext
-  $(user) $(urlfetch https://your-deployment-url.com/?cmd=deal&user=$(user))
-  \`\`\`
+```$(user) $(urlfetch https://your-deployment-url.com/?cmd=deal&user=$(user))```
+
 
 - **Hit:**
-  \`\`\`plaintext
-  $(user) $(urlfetch https://your-deployment-url.com/?cmd=hit&user=$(user))
-  \`\`\`
+```$(user) $(urlfetch https://your-deployment-url.com/?cmd=hit&user=$(user))```
 
 - **Stand:**
-  \`\`\`plaintext
-  $(user) $(urlfetch https://your-deployment-url.com/?cmd=stand&user=$(user))
-  \`\`\`
+```$(user) $(urlfetch https://your-deployment-url.com/?cmd=stand&user=$(user))```
 
 Make sure to replace `https://your-deployment-url.com` with the actual URL of your deployed server.
 
 ### Setup Instructions:
 
 1. Clone this repository to your local machine:
-   \`\`\`bash
-   git clone https://github.com/your-repository-name/blackjack-nightbot.git
-   \`\`\`
+```git clone https://github.com/your-repository-name/blackjack-nightbot.git```
 
 2. Navigate to the project directory:
-   \`\`\`bash
-   cd blackjack-nightbot
-   \`\`\`
+```cd blackjack-nightbot```
 
 3. Install the required dependencies:
-   \`\`\`bash
-   npm install
-   \`\`\`
+```npm install```
 
 4. Configure and start your server:
-   \`\`\`bash
-   node main.js
-   \`\`\`
+```node main.js```
 
    The server will start and listen on port 8000 (or any port defined in the `PORT` environment variable).
 
