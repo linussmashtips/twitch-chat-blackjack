@@ -1,5 +1,3 @@
-// main.js
-
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 8000;
@@ -13,15 +11,30 @@ function getRandomCard() {
   return cards[Math.floor(Math.random() * cards.length)];
 }
 
-// Utility: Calculate card value (J, Q, K = 10, A = 1 or 11)
-function getCardValue(card, currentTotal) {
-  if (['J', 'Q', 'K'].includes(card)) {
-    return 10;
-  } else if (card === 'A') {
-    return (currentTotal + 11 > 21) ? 1 : 11;
-  } else {
-    return parseInt(card);
+// Utility: Calculate total for a hand, handling Aces dynamically
+function calculateTotal(cards) {
+  let total = 0;
+  let aceCount = 0;
+
+  // First pass: Treat Aces as 11 initially
+  for (const card of cards) {
+    if (['J', 'Q', 'K'].includes(card)) {
+      total += 10;
+    } else if (card === 'A') {
+      total += 11;
+      aceCount += 1;
+    } else {
+      total += parseInt(card);
+    }
   }
+
+  // Adjust Aces from 11 to 1 if total exceeds 21
+  while (total > 21 && aceCount > 0) {
+    total -= 10; // Reduce an Ace from 11 to 1
+    aceCount -= 1;
+  }
+
+  return total;
 }
 
 // Join the game (!bj)
@@ -38,10 +51,14 @@ function joinGame(playerName) {
   }
 }
 
-// Deal cards
+// Deal cards (!deal)
 function dealCards(playerName) {
   if (!players[playerName]) {
     return "You need to join the game first using !bj";
+  }
+
+  if (players[playerName].state !== 'joined') {
+    return `${playerName}, you need to start a new game by using !bj before dealing.`;
   }
 
   // Reset dealer's state at the start of a new round
@@ -49,22 +66,14 @@ function dealCards(playerName) {
   dealer.total = 0;
   dealer.state = 'playing';
 
-  // Check if player is already playing
-  if (players[playerName].state !== 'joined') {
-    return `${playerName}, you need to start a new game by using !bj before dealing.`;
-  }
-
   // Deal two cards to player
-  for (let i = 0; i < 2; i++) {
-    players[playerName].cards.push(getRandomCard());
-  }
+  players[playerName].cards = [getRandomCard(), getRandomCard()];
+  players[playerName].total = calculateTotal(players[playerName].cards);
+  players[playerName].state = 'playing';
 
-  // Deal two cards to dealer (one face down)
-  dealer.cards.push(getRandomCard(), getRandomCard());
-
-  // Calculate total for the player
-  players[playerName].total = players[playerName].cards.reduce((total, card) => total + getCardValue(card, total), 0);
-  players[playerName].state = 'playing'; // Update state to playing
+  // Deal two cards to dealer
+  dealer.cards = [getRandomCard(), getRandomCard()];
+  dealer.total = calculateTotal(dealer.cards);
 
   return `${playerName} was dealt: ${players[playerName].cards.join(', ')} (Total: ${players[playerName].total}). Dealer shows: ${dealer.cards[0]}`;
 }
@@ -81,10 +90,10 @@ function hit(playerName) {
 
   const newCard = getRandomCard();
   players[playerName].cards.push(newCard);
-  players[playerName].total += getCardValue(newCard, players[playerName].total);
+  players[playerName].total = calculateTotal(players[playerName].cards);
 
   if (players[playerName].total > 21) {
-    players[playerName].state = 'bust'; // Update state to busted
+    players[playerName].state = 'bust'; // Player busts
     return `${playerName} busted with ${newCard} (Total: ${players[playerName].total}).`;
   }
 
@@ -104,30 +113,34 @@ function stand(playerName) {
   players[playerName].state = 'finished'; // Player stands
 
   // Dealer's turn
-  while (dealer.total < 17) {
+  while (calculateTotal(dealer.cards) < 17) {
     const dealerCard = getRandomCard();
     dealer.cards.push(dealerCard);
-    dealer.total += getCardValue(dealerCard, dealer.total);
   }
 
+  dealer.total = calculateTotal(dealer.cards);
+
   // Determine outcome
-  let result = determineOutcome(playerName);
+  const result = determineOutcome(playerName);
   return `${playerName} stands. Dealer's cards: ${dealer.cards.join(', ')} (Total: ${dealer.total}). ${result}`;
 }
 
 // Determine outcome
 function determineOutcome(playerName) {
+  const playerTotal = players[playerName].total;
+  const dealerTotal = dealer.total;
+
   if (players[playerName].state === 'bust') {
     return `${playerName} loses!`;
   }
 
-  if (dealer.total > 21) {
+  if (dealerTotal > 21) {
     return `${playerName} wins! Dealer busts!`;
   }
 
-  if (players[playerName].total > dealer.total) {
+  if (playerTotal > dealerTotal) {
     return `${playerName} wins!`;
-  } else if (players[playerName].total < dealer.total) {
+  } else if (playerTotal < dealerTotal) {
     return `${playerName} loses!`;
   } else {
     return `${playerName} and dealer tie!`;
